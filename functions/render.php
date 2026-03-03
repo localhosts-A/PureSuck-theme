@@ -54,6 +54,7 @@ function psNormalizeBlockParagraphs($content)
     $blockTags = '(?:div|section|article|aside|figure|ul|ol|table|blockquote|pre|h[1-6])';
     $spaceLike = '(?:\s|&nbsp;|&#160;|<br\s*\/?>)*';
 
+    // 依次处理：块级标签外层起始 p、结束 p、纯空段落
     $content = preg_replace(
         [
             '/<p>' . $spaceLike . '(<'.$blockTags.'\b[^>]*>)/iu',
@@ -74,7 +75,11 @@ function psNormalizeBlockParagraphs($content)
 // 清理解析后遗留的空段落，避免组件前后出现多余空白。
 function psCleanupEmptyParagraphs($content)
 {
-    return psNormalizeBlockParagraphs($content);
+    if (!is_string($content) || $content === '') {
+        return (string)$content;
+    }
+
+    return preg_replace('/<p>(?:\s|&nbsp;|&#160;|<br\s*\/?>)*<\/p>/iu', '', $content);
 }
 
 // 内容渲染主函数

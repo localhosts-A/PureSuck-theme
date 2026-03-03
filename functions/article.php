@@ -1099,7 +1099,11 @@ function parseOwOcodes($content)
 function getMarkdownCharacters($content)
 {
     static $cache = [];
-    $cacheKey = md5((string)$content);
+    static $cacheOrder = [];
+    // 单次请求内缓存上限，避免长文列表场景下静态缓存无限增长。
+    $cacheLimit = 64;
+    $content = (string)$content;
+    $cacheKey = md5($content);
     if (isset($cache[$cacheKey])) {
         return $cache[$cacheKey];
     }
@@ -1107,5 +1111,10 @@ function getMarkdownCharacters($content)
     $content = preg_replace('/```[\s\S]*?```/m', '', $content);
     preg_match_all('/[\x{4e00}-\x{9fa5}]/u', $content, $matches);
     $cache[$cacheKey] = count($matches[0]);
+    $cacheOrder[] = $cacheKey;
+    if (count($cacheOrder) > $cacheLimit) {
+        $oldestKey = array_shift($cacheOrder);
+        unset($cache[$oldestKey]);
+    }
     return $cache[$cacheKey];
 }
