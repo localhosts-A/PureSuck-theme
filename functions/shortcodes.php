@@ -195,12 +195,13 @@ function parseShortcodes($content)
             'check' => '[bilibili-card',
             'pattern' => '/\[bilibili-card bvid="([^"]*)"\]/',
             'handler' => function ($matches) {
-                $bvid = preg_match('/^[A-Za-z0-9]+$/', $matches[1]) ? $matches[1] : '';
+                $bvid = preg_match('/^BV[A-Za-z0-9]{10}$/', $matches[1]) ? $matches[1] : '';
                 if ($bvid === '') {
                     return '';
                 }
                 $url = "//player.bilibili.com/player.html?bvid=$bvid&autoplay=0";
-                return "\n        <div class='bilibili-card'>\n            <iframe src='$url' loading='lazy' referrerpolicy='no-referrer-when-downgrade' scrolling='no' border='0' frameborder='no' framespacing='0' allowfullscreen='true'></iframe>\n        </div>\n    ";
+                $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+                return "\n        <div class='bilibili-card'>\n            <iframe src='$safeUrl' loading='lazy' referrerpolicy='no-referrer-when-downgrade' scrolling='no' allowfullscreen='true'></iframe>\n        </div>\n    ";
             }
         ]
     ];
