@@ -195,9 +195,12 @@ function parseShortcodes($content)
             'check' => '[bilibili-card',
             'pattern' => '/\[bilibili-card bvid="([^"]*)"\]/',
             'handler' => function ($matches) {
-                $bvid = $matches[1];
+                $bvid = preg_match('/^[A-Za-z0-9]+$/', $matches[1]) ? $matches[1] : '';
+                if ($bvid === '') {
+                    return '';
+                }
                 $url = "//player.bilibili.com/player.html?bvid=$bvid&autoplay=0";
-                return "\n        <div class='bilibili-card'>\n            <iframe src='$url' scrolling='no' border='0' frameborder='no' framespacing='0' allowfullscreen='true'></iframe>\n        </div>\n    ";
+                return "\n        <div class='bilibili-card'>\n            <iframe src='$url' loading='lazy' referrerpolicy='no-referrer-when-downgrade' scrolling='no' border='0' frameborder='no' framespacing='0' allowfullscreen='true'></iframe>\n        </div>\n    ";
             }
         ]
     ];
@@ -256,7 +259,7 @@ function parseShortcodes($content)
             }
 
             if (!empty($alt)) {
-                return '<figure>' . $matches[0] . '<figcaption>' . $alt . '</figcaption></figure>';
+                return '<figure>' . $matches[0] . '<figcaption>' . htmlspecialchars($alt, ENT_QUOTES, 'UTF-8') . '</figcaption></figure>';
             }
 
             return $matches[0];
@@ -280,7 +283,7 @@ function parseAlerts($content)
     }
 
     $content = preg_replace_callback('/<div alert-type="(.*?)">(.*?)<\/div>/', function ($matches) {
-        $type = $matches[1];
+        $type = htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8');
         $innerContent = $matches[2];
         $iconClass = 'icon-info-circled';
         switch ($type) {
@@ -309,8 +312,8 @@ function parseWindows($content)
     }
 
     $content = preg_replace_callback('/<div window-type="(.*?)" title="(.*?)">(.*?)<\/div>/', function ($matches) {
-        $type = $matches[1];
-        $title = $matches[2];
+        $type = htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8');
+        $title = htmlspecialchars($matches[2], ENT_QUOTES, 'UTF-8');
         $innerContent = $matches[3];
         return '<div class="window ' . $type . '"><div class="flex"><div class="window-prompt-wrap"><p class="window-prompt-heading">' . $title . '</p><div class="window-prompt-prompt"><p>' . $innerContent . '</p></div></div></div></div>';
     }, $content);
@@ -327,8 +330,8 @@ function parseTimeline($content)
     $content = str_replace('<div id="timeline">', '<div class="timeline">', $content);
 
     $content = preg_replace_callback('/<div timeline-event date="(.*?)" title="(.*?)">(.*?)<\/div>/', function ($matches) {
-        $date = $matches[1];
-        $title = $matches[2];
+        $date = htmlspecialchars($matches[1], ENT_QUOTES, 'UTF-8');
+        $title = htmlspecialchars($matches[2], ENT_QUOTES, 'UTF-8');
         $innerContent = $matches[3];
         return '<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-content"><div class="timeline-date">' . $date . '</div><div class="timeline-title">' . $title . '</div><div class="timeline-description">' . $innerContent . '</div></div></div>';
     }, $content);
