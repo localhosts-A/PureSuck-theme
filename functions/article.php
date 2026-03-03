@@ -1098,7 +1098,14 @@ function parseOwOcodes($content)
 // 文章字数统计
 function getMarkdownCharacters($content)
 {
+    static $cache = [];
+    $cacheKey = md5((string)$content);
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
     $content = preg_replace('/```[\s\S]*?```/m', '', $content);
     preg_match_all('/[\x{4e00}-\x{9fa5}]/u', $content, $matches);
-    return count($matches[0]);
+    $cache[$cacheKey] = count($matches[0]);
+    return $cache[$cacheKey];
 }

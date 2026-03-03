@@ -40,7 +40,6 @@ function psRenderContentPipeline($content)
     }
 
     $content = psNormalizeBlockParagraphs($content);
-    $content = psCleanupEmptyParagraphs($content);
 
     return $content;
 }
@@ -55,10 +54,19 @@ function psNormalizeBlockParagraphs($content)
     $blockTags = '(?:div|section|article|aside|figure|ul|ol|table|blockquote|pre|h[1-6])';
     $spaceLike = '(?:\s|&nbsp;|&#160;|<br\s*\/?>)*';
 
-    // <p> + 空白 + 块级开始标签 => 去掉开头 p
-    $content = preg_replace('/<p>' . $spaceLike . '(<'.$blockTags.'\b[^>]*>)/iu', '$1', $content);
-    // 块级结束标签 + 空白 + </p> => 去掉结尾 p
-    $content = preg_replace('/(<\/'.$blockTags.'>)' . $spaceLike . '<\/p>/iu', '$1', $content);
+    $content = preg_replace(
+        [
+            '/<p>' . $spaceLike . '(<'.$blockTags.'\b[^>]*>)/iu',
+            '/(<\/'.$blockTags.'>)' . $spaceLike . '<\/p>/iu',
+            '/<p>' . $spaceLike . '<\/p>/iu'
+        ],
+        [
+            '$1',
+            '$1',
+            ''
+        ],
+        $content
+    );
 
     return $content;
 }
@@ -66,11 +74,7 @@ function psNormalizeBlockParagraphs($content)
 // 清理解析后遗留的空段落，避免组件前后出现多余空白。
 function psCleanupEmptyParagraphs($content)
 {
-    if (!is_string($content) || $content === '') {
-        return (string)$content;
-    }
-
-    return preg_replace('/<p>(?:\s|&nbsp;|&#160;|<br\s*\/?>)*<\/p>/iu', '', $content);
+    return psNormalizeBlockParagraphs($content);
 }
 
 // 内容渲染主函数
