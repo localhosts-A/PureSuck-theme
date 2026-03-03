@@ -40,7 +40,6 @@ function psRenderContentPipeline($content)
     }
 
     $content = psNormalizeBlockParagraphs($content);
-    $content = psCleanupEmptyParagraphs($content);
 
     return $content;
 }
@@ -55,10 +54,20 @@ function psNormalizeBlockParagraphs($content)
     $blockTags = '(?:div|section|article|aside|figure|ul|ol|table|blockquote|pre|h[1-6])';
     $spaceLike = '(?:\s|&nbsp;|&#160;|<br\s*\/?>)*';
 
-    // <p> + 空白 + 块级开始标签 => 去掉开头 p
-    $content = preg_replace('/<p>' . $spaceLike . '(<'.$blockTags.'\b[^>]*>)/iu', '$1', $content);
-    // 块级结束标签 + 空白 + </p> => 去掉结尾 p
-    $content = preg_replace('/(<\/'.$blockTags.'>)' . $spaceLike . '<\/p>/iu', '$1', $content);
+    // 依次处理：块级标签外层起始 p、结束 p、纯空段落
+    $content = preg_replace(
+        [
+            '/<p>' . $spaceLike . '(<'.$blockTags.'\b[^>]*>)/iu',
+            '/(<\/'.$blockTags.'>)' . $spaceLike . '<\/p>/iu',
+            '/<p>' . $spaceLike . '<\/p>/iu'
+        ],
+        [
+            '$1',
+            '$1',
+            ''
+        ],
+        $content
+    );
 
     return $content;
 }

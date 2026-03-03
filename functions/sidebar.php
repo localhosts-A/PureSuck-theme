@@ -8,6 +8,11 @@ if (!defined('__TYPECHO_ROOT_DIR__'))
 // 全站文章总字数
 function getAllCharacters()
 {
+    static $runtimeCache = null;
+    if ($runtimeCache !== null) {
+        return $runtimeCache;
+    }
+
     $cacheKey = 'all_characters:v2';
     $ttl = 6 * 3600;
 
@@ -30,10 +35,12 @@ function getAllCharacters()
     $cache = getCache($cacheKey, $ttl, 'stats');
     if ($cache && isset($cache['data'])) {
         if (isset($cache['max_modified']) && (int)$cache['max_modified'] === $maxModified) {
-            return (string)$cache['data'];
+            $runtimeCache = (string)$cache['data'];
+            return $runtimeCache;
         }
         if (!isset($cache['max_modified']) && !empty($cache['fresh'])) {
-            return (string)$cache['data'];
+            $runtimeCache = (string)$cache['data'];
+            return $runtimeCache;
         }
     }
 
@@ -56,7 +63,8 @@ function getAllCharacters()
     }
     $out = sprintf('%.2lf %s', $chars, $unit);
     setCache($cacheKey, $out, 'stats', ['max_modified' => $maxModified]);
-    return $out;
+    $runtimeCache = $out;
+    return $runtimeCache;
 }
 
 // 获取文章总数

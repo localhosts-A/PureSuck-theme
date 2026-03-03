@@ -1098,7 +1098,23 @@ function parseOwOcodes($content)
 // 文章字数统计
 function getMarkdownCharacters($content)
 {
+    static $cache = [];
+    static $cacheOrder = [];
+    // 单次请求内缓存上限，避免长文列表场景下静态缓存无限增长。
+    $cacheLimit = 64;
+    $content = (string)$content;
+    $cacheKey = md5($content);
+    if (isset($cache[$cacheKey])) {
+        return $cache[$cacheKey];
+    }
+
     $content = preg_replace('/```[\s\S]*?```/m', '', $content);
     preg_match_all('/[\x{4e00}-\x{9fa5}]/u', $content, $matches);
-    return count($matches[0]);
+    $cache[$cacheKey] = count($matches[0]);
+    $cacheOrder[] = $cacheKey;
+    if (count($cacheOrder) > $cacheLimit) {
+        $oldestKey = array_shift($cacheOrder);
+        unset($cache[$oldestKey]);
+    }
+    return $cache[$cacheKey];
 }

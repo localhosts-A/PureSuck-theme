@@ -181,7 +181,7 @@ function getPSRuntimeConfig($archive = null)
 function outputPSRuntimeConfigScript($archive = null)
 {
     $config = getPSRuntimeConfig($archive);
-    $json = json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $json = json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
     if ($json === false) {
         $json = '{}';
     }
@@ -209,7 +209,8 @@ function getLatestGitHubRelease($owner, $repo)
     $context = stream_context_create([
         'http' => [
             'method' => 'GET',
-            'header' => "User-Agent: PureSuck-Theme\r\n"
+            'header' => "User-Agent: PureSuck-Theme\r\n",
+            'timeout' => 6
         ]
     ]);
 
